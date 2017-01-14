@@ -130,7 +130,7 @@ class Basket(PropValid):
 
 class BasketItem(PropValid):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    article = models.CharField(blank=False, unique=True, max_length=50)
+    article = models.CharField(blank=False, max_length=50)
     shortname = models.CharField(blank=False, max_length=100)
     cnt = models.DecimalField(blank=False, max_digits=18, decimal_places=2)
     price = models.DecimalField(blank=False, max_digits=18, decimal_places=2)

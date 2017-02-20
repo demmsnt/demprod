@@ -1,0 +1,43 @@
+<!-- Modal -->
+<div id="[[ id ]]" class="modal fade" role="dialog">
+  <style>
+  #[[ id ]] .tree {
+    max-height: 500px;
+    overflow: auto;
+  }
+  .item-article,
+  .item-name,
+  .item-count,
+  .item-price,
+  .item-control {
+    display: inline-block;
+  }
+
+  </style>
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Корзина</h4>
+      </div>
+      <div class="modal-body basket">
+      [% for item in items %]
+        <div class="basket-row" data-id="[[ item.id ]]">
+          <div class="item-article">[[ item.article ]]</div>
+          <div class="item-name">[[ item.shortname ]]</div>
+          <div class="item-count"><input class="form-control" value="[[ item.cnt ]]"></div>
+          <div class="item-price">[[ item.price ]]</div>
+          <div class="item-control"><button class="btn basket-control-btn">Сохранить</button></div>
+        </div>
+      [% else %]
+        Корзина пуста
+      [% endfor %]
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+        <button type="button" class="btn process-basket">Завершить</button>
+      </div>
+    </div>
+  </div>
+</div>

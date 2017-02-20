@@ -105,6 +105,7 @@
 </div>
 <div class="col-sm-8" id="tprod_target">
   <div style="display:none"> <!-- с помощью display:none я прячу от пользователя шаблон -->
+    <button id="basket-btn" class="btn">Корзина</button>
     <table class="table table-striped">
       <thead><tr><th></th><th>Артикул</th><th>Кр.имя</th><th>Имя</th><th>Примечание</th><th>Действия</th></tr></thead>
       <tbody>
@@ -132,7 +133,8 @@
           add_to_basket: "{% url 'demprod:add_to_basket' %}",
           update_basket: "{% url 'demprod:update_basket' %}",
           js_categories: "{% url 'demprod:js_categories' %}",
-          js_products: "{% url 'demprod:js_products' %}"
+          js_products: "{% url 'demprod:js_products' %}",
+          js_process_basket: "{% url 'demprod:js_process_basket' %}"
         };
 
         int_demprod(urls);
@@ -147,18 +149,88 @@
 
         // чтоб не писать постоянно nunjucks заменим на N
         var N = nunjucks;
+        nunjucks.configure('/static/demprod/templates', {
+                 autoescape: true,
+                });
         function nunjucks_test(urls) {
            var cat_target = '#tcat_target';
            var cat_tmpl = $(cat_target+ ' div').html();
+           $(cat_target).html(''); //почищу чтоб не маячило
 
            var prod_target = '#tprod_target';
            var prod_tmpl = $(prod_target+ ' div').html();
+           $(cat_target).html(''); //почищу чтоб не маячило
 
+           //Тут я буду сохранять состояние - не заморачивайтесь пока
+           var state={cat_id: undefined};
            //товары
            function add2basket(evt) {
               var id = $(evt.currentTarget).data('id');
-              console.log('Добавить в корзину ID=', id);
+              //console.log('Добавить в корзину ID=', id);
+              $.get(
+                  urls.add_to_basket + "?oid=" + id + "&count=1",
+                  function(data) {
+                      alert('Товар добавлен в корзину'); // + data + $(evt.currentTarget).data('id'));
+                  }
+              );
            }
+
+           function showBasket(data) {
+              var html = nunjucks.render('basket.html', {
+                  id: 'basket-dlg'
+                  ,items: data.items
+                });
+              $('#basket-dlg').remove();
+              $(html).appendTo('body');
+              //Навесим обработчики сохранения
+              $('.basket-control-btn').bind('click', function (evt) {
+                  var row = $($(evt.currentTarget).parents('.basket-row')[0]);
+                  var id = row.data('id');
+                  var cnt = row.find('input').val();
+                  $.post(urls.update_basket,
+                         { oid: id, cnt: cnt }
+                  ).done(
+                      function(data) {
+                          if (data == 'deleted') {
+                              $(row).remove();
+                          }
+                      }
+                  );
+              });
+              //Обработчик для завершения платежа
+              $('.process-basket').bind('click', function (evt){
+                  var html = nunjucks.render('processb.html', {id: 'process-dlg'});
+                  $('#process-dlg').remove();
+                  $(html).appendTo('body');
+                  //навесим обработчики
+                  $('.process').bind('click', function (evt) {
+                      var name=$('#InputName').val();
+                      var phone=$('#InputPhone').val();
+                      var email=$('#InputEmail').val();
+                      if (name=="") {
+                        alert("Вы не указали имя");
+                        return;
+                      }
+                      if (email=="" && phone=="") {
+                        alert("Вы не указали контактную информацию (телефон или емэйл)");
+                        return;
+                      }
+                      $.post(urls.js_process_basket,
+                             { name: name, phone: phone, email: email }
+                      ).done(
+                          function(data) {
+                            $('#process-dlg').modal('hide');
+                            $('#basket-dlg').modal('hide');
+                            alert("Ваш заказ поступил в обработку");
+                          }
+                      );
+
+                  });
+                  $('#process-dlg').modal('show');
+              });
+              $('#basket-dlg').modal('show');
+           }
+
            function load_products(urls, cat_id) {
               var url = urls.js_products;
               var params = '';
@@ -173,7 +245,6 @@
               $.get(
                   url
               ).done(function(data) {
-                 console.log('prod:', data);
                  $(prod_target).html(N.renderString(prod_tmpl, data));
                  // назначим обработчики
                  //переберем в цикле все элементы с классом prodaction
@@ -183,6 +254,9 @@
                         $(o).bind('click', add2basket);
                     }
                   });
+                 $('#basket-btn').bind('click', function (evt){
+                    $.get(urls.basket_detail, showBasket);
+                 });
               });
             }
 
@@ -205,7 +279,6 @@
            }
 
            function load_categories(urls, cat_id) {
-              console.log("load_categories cat_id=",cat_id );
               var url = urls.js_categories;
               var params = '';
               //Дополним параметрами если они есть
@@ -220,6 +293,8 @@
                   url
               ).done(function(data) {
                  var target = cat_target;
+                 //сохраню состояние
+                 window.history.pushState(state, 'Тест categories');
                  if (cat_id!=undefined) {
                     target = cat_target+' .subcategory[data-id='+cat_id+']';
                     data['top']=false;
@@ -227,7 +302,6 @@
                  else {
                     data['top']=true;
                  }
-                 console.log('cat:', data);
                  $(target).html(N.renderString(cat_tmpl, data));
                  //Пометим категорию как текущую
                  var current_id = cat_id || ""; //тут мы если cat_id undefined назначим пустую строку

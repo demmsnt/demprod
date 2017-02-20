@@ -6,6 +6,24 @@ from django.core.exceptions import ValidationError
 import json
 
 
+from django.utils.translation import ugettext_lazy as _
+from cms.models.pagemodel import Page
+# from filebrowser.fields import FileBrowseField as FBF
+
+
+class PageFields(models.Model):
+    """Расширим страницу Django CMS"""
+    page = models.ForeignKey(Page, verbose_name=_("Page"),
+        editable=False, related_name='extended_fields')
+    #big_avatar      = FBF(_(u'Big Avatar'), max_length=255, blank=True)
+    #small_avatar    = FBF(_(u'Small Avatar'), max_length=255, blank=True)
+    name = models.CharField(blank=False, max_length=50)
+    value = models.TextField(default="")
+
+    def get(self, name):
+        return u"name is %s" % name
+
+
 class PropValid(models.Model):
     """Validate Properties"""
     properties = models.TextField(blank=True)

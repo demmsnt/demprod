@@ -205,10 +205,13 @@ def get_basket(request):
         try:
             bid = uuid.UUID(bid, version=4)
             basket = Basket.objects.get(pk=bid)
-        except ValueError, Basket.DoesNotExist:
+        except (ValueError, Basket.DoesNotExist):
             basket = Basket()
             basket.save()
             bid = basket.id
+        except Exception as e:
+            print "e=", e, type(e), Basket.DoesNotExist, type(Basket.DoesNotExist)
+            raise
     if basket.state != 0:
         # Если корзина уже обработана, то пользователю с ней работать НЕЛЬЗЯ
         basket = Basket()
@@ -383,3 +386,18 @@ def js_products(request):
         'paginator': opaginator,
         'items': result
         })
+
+def js_process_basket(request):
+    """Сохранение корзины"""
+    basket = get_basket(request)
+    print request.POST.keys()
+    basket.user_name = request.POST['name']
+    basket.user_email = request.POST.get('email', '')
+    basket.user_phone = request.POST.get('phone', '')
+    basket.state = 1
+    basket.save()
+
+    return JsonResponse({
+        'result': 'Ok'
+        })
+

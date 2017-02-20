@@ -17,4 +17,5 @@ urlpatterns = [
     # для AJAX
     url(r'^js/categories/$', views.js_categories, name='js_categories'),
     url(r'^js/products/$', views.js_products, name='js_products'),
+    url(r'^js/process_basket/$', views.js_process_basket, name='js_process_basket'),
 ]

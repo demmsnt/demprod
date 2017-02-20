@@ -1,7 +1,20 @@
+# -*- coding: utf-8 -*-
 """admin"""
 
 from django.contrib import admin
-from .models import Picture, Product, Category, BasketItem, Basket
+from .models import Picture, Product, Category, BasketItem, Basket, PageFields
+from cms.admin.pageadmin import PageAdmin
+from cms.models.pagemodel import Page
+
+
+# Не работает :-(
+# class PageFieldsAdmin(admin.TabularInline):
+#     model = PageFields
+
+# PageAdmin.inlines.append(PageFieldsAdmin)
+
+# admin.site.unregister(Page)
+# admin.site.register(Page, PageAdmin)
 
 
 class PictureInline(admin.TabularInline):

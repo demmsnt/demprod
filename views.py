@@ -209,9 +209,6 @@ def get_basket(request):
             basket = Basket()
             basket.save()
             bid = basket.id
-        except Exception as e:
-            print "e=", e, type(e), Basket.DoesNotExist, type(Basket.DoesNotExist)
-            raise
     if basket.state != 0:
         # Если корзина уже обработана, то пользователю с ней работать НЕЛЬЗЯ
         basket = Basket()
